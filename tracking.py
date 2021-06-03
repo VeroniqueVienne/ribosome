@@ -1,20 +1,13 @@
-import numpy as np
 import pandas as pd
-import trackpy as tp
-import skimage
-import os, sys
 from scipy.signal import find_peaks
+
 from link_particules import link_particles
-
-
-
-
 
 
 def compute_intensity(
     image, position_x: float, position_y: float, particule_radius: int
 ) -> float:
-    '''function which permits to clculate the intensity in a position( xp, yp)'''
+    """function which permits to clculate the intensity in a position( xp, yp)"""
     neighbourhood_size = (particule_radius - 1) // 2
     position_x_int = int(position_x)
     position_y_int = int(position_y)
@@ -29,8 +22,14 @@ def compute_intensity(
             sum(
                 sum(
                     image[
-                        position_y_int - neighbourhood_size : position_y_int + neighbourhood_size + 1,
-                        position_x_int - neighbourhood_size : position_x_int + neighbourhood_size + 1,
+                        position_y_int
+                        - neighbourhood_size : position_y_int
+                        + neighbourhood_size
+                        + 1,
+                        position_x_int
+                        - neighbourhood_size : position_x_int
+                        + neighbourhood_size
+                        + 1,
                     ]
                 )
             )
@@ -41,20 +40,17 @@ def compute_intensity(
     return intensity_value
 
 
-
-
 def optical_flow(linked_particles, n_frames: int) -> pd.DataFrame:
-    '''For each particle found at the frame 0, we create a subdataframe containing
+    """For each particle found at the frame 0, we create a subdataframe containing
     the same columns as linked_particles with a n_frames number of rows .
      Then we concatene all the subdataframes in order to obtain a dataframe of size
-     n_frames*nB of particles (frame0) rows . It a dataframe for initialization because we copy n_frames 
-     times the subdataframe dor the nB particles'''
-     
+     n_frames*nB of particles (frame0) rows . It a dataframe for initialization because we copy n_frames
+     times the subdataframe dor the nB particles"""
+
     particules_on_first_frame = linked_particles[linked_particles.frame == 0]
-    
 
     for item, row in particules_on_first_frame.iterrows():
-        a=item
+        a = item
         particules_on_first_frame.loc[item, "particle"] = a
 
     particules_on_first_frame.drop(
@@ -73,13 +69,15 @@ def optical_flow(linked_particles, n_frames: int) -> pd.DataFrame:
 
 
 def optical_flow_intensity(linked_particles, video, particle_radius) -> pd.DataFrame:
-    ''' here we calculate the intensity value and put that on the column signal '''
+    """here we calculate the intensity value and put that on the column signal"""
     n_frames = video.shape[0]
     particules_on_first_frame = optical_flow(linked_particles, n_frames)
 
     for row in particules_on_first_frame.itertuples():
 
-        intensity_value = compute_intensity(video[row.frame], row.x, row.y, particle_radius)
+        intensity_value = compute_intensity(
+            video[row.frame], row.x, row.y, particle_radius
+        )
 
         particules_on_first_frame.at[row.Index, "signal"] = intensity_value
 
